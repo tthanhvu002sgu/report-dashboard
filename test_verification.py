@@ -121,7 +121,7 @@ def run_tests():
 
     # 3. Kiểm tra tính toán chỉ số định lượng
     print("\n🧮 KIỂM TRA TÍNH TOÁN CHỈ SỐ ĐỊNH LƯỢNG (METRICS ENGINE):")
-    metrics = compute_metrics(trades_all, initial_capital=10000.0, risk_free_rate_pct=5.0)
+    metrics = compute_metrics(trades_all, initial_capital=5000.0, risk_free_rate_pct=5.0)
     sum_met = metrics["summary"]
     inst_met = metrics["institutional_ratios"]
     pay_met = metrics["payoff_quality"]

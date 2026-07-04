@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 
 
-def compute_metrics(trades: List[Dict[str, Any]], initial_capital: float = 10000.0, risk_free_rate_pct: float = 5.0) -> Dict[str, Any]:
+def compute_metrics(trades: List[Dict[str, Any]], initial_capital: float = 5000.0, risk_free_rate_pct: float = 5.0) -> Dict[str, Any]:
     """
     Tính toán toàn bộ bộ chỉ số định lượng cho danh sách giao dịch.
     """
@@ -248,7 +248,7 @@ def compute_metrics(trades: List[Dict[str, Any]], initial_capital: float = 10000
     return sanitize_json_floats(res)
 
 
-def _empty_metrics(initial_capital: float = 10000.0) -> Dict[str, Any]:
+def _empty_metrics(initial_capital: float = 5000.0) -> Dict[str, Any]:
     """Trả về cấu trúc rỗng khi không có giao dịch nào."""
     res = {
         "summary": {
