@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT5 Strategy Quantitative Analyzer - Institutional Dashboard</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER & TOP CONTROL BAR -->
+        <header class="glass-header">
+            <div class="logo-area">
+                <div class="logo-icon">⚡</div>
+                <div>
+                    <h1>MT5 QUANTITATIVE ANALYZER</h1>
+                    <span class="subtitle">Institutional Strategy Evaluation & Performance Dashboard</span>
+                </div>
+            </div>
+
+            <!-- SOURCE STATUS & CONNECTION -->
+            <div class="header-controls">
+                <div id="status-badge" class="status-badge offline">
+                    <span class="dot"></span>
+                    <span id="status-text">Chế độ Offline (VPS Report)</span>
+                </div>
+                <button id="btn-connect-mt5" class="btn-primary" title="Kết nối MT5 Terminal đang chạy trên máy cục bộ">
+                    🔄 Kết nối MT5 Local
+                </button>
+            </div>
+        </header>
+
+        <!-- VPS DRAG & DROP REPORT UPLOAD ZONE -->
+        <section class="upload-section">
+            <div id="dropzone" class="dropzone-glass">
+                <div class="drop-icon">☁️</div>
+                <div class="drop-content">
+                    <h3>Kéo thả file báo cáo từ VPS vào đây để phân tích ngay</h3>
+                    <p>Hỗ trợ báo cáo xuất từ MT5: <strong>HTML / Excel (.xlsx/.xls) / CSV / JSON</strong> (Nhấp chuột phải Toolbox -> History -> Report trên MT5 VPS)</p>
+                    <span id="current-file-label" class="file-label">Chưa có file báo cáo nào được tải lên</span>
+                </div>
+                <input type="file" id="file-input" accept=".html,.htm,.csv,.xml,.xls,.xlsx,.json" hidden>
+                <button id="btn-browse-file" class="btn-secondary">📁 Chọn file VPS...</button>
+            </div>
+        </section>
+
+        <!-- TIME RANGE SELECTOR BAR -->
+        <section class="time-filter-bar glass-panel">
+            <div class="time-filter-label">⏱️ Mốc thời gian:</div>
+            <div class="time-pills" id="time-pills">
+                <button class="time-pill active" data-time="this_week">Tuần này (Mặc định)</button>
+                <button class="time-pill" data-time="this_month">Tháng này</button>
+                <button class="time-pill" data-time="all_time">Toàn bộ</button>
+            </div>
+        </section>
+
+        <!-- MAIN VIEW 1: PORTFOLIO OVERVIEW -->
+        <main id="view-portfolio" class="view-section loading-container active">
+            <!-- Local Spinner -->
+            <div class="container-spinner">
+                <div class="circle-spinner"></div>
+            </div>
+            
+            <!-- 4 HERO KPI CARDS -->
+            <div class="kpi-grid">
+                <div class="kpi-card glass-card">
+                    <div class="kpi-title">Tổng Lợi Nhuận Ròng (Net Profit)</div>
+                    <div id="kpi-net-profit" class="kpi-value">$0.00</div>
+                    <div id="kpi-return-pct" class="kpi-sub">+0.00% ROI</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-title">Tỷ Lệ Thắng (Win Rate)</div>
+                    <div id="kpi-win-rate" class="kpi-value">0.00%</div>
+                    <div id="kpi-trades-count" class="kpi-sub">0 Lệnh giao dịch</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-title">Hệ Số Sinh Lời (Profit Factor)</div>
+                    <div id="kpi-profit-factor" class="kpi-value">0.00</div>
+                    <div id="kpi-payoff-ratio" class="kpi-sub">Payoff: 0.00</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-title">Sụt Giảm Tối Đa (Max Drawdown)</div>
+                    <div id="kpi-max-dd" class="kpi-value dd-text">0.00%</div>
+                    <div id="kpi-dd-usd" class="kpi-sub">-$0.00</div>
+                </div>
+            </div>
+
+            <!-- STRATEGIES COMPARISON TABLE -->
+            <div class="panel-section glass-panel">
+                <div class="panel-header">
+                    <h2>📊 Bảng So Sánh Hiệu Suất Chiến Lược (Magic Numbers)</h2>
+                    <span class="hint">Nhấp vào chiến lược bất kỳ để xem phân tích chuyên sâu (Equity Curve, Scorecard, Heatmap)</span>
+                </div>
+                <div class="table-responsive">
+                    <table id="table-strategies" class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Magic Number</th>
+                                <th>Tên Chiến Lược / EA</th>
+                                <th>Số Lệnh</th>
+                                <th>Win Rate</th>
+                                <th>Lợi Nhuận Ròng</th>
+                                <th>Profit Factor</th>
+                                <th>Sharpe Ratio</th>
+                                <th>Chỉ Số SQN</th>
+                                <th>Max DD (%)</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-strategies">
+                            <tr>
+                                <td colspan="10" class="empty-cell">Đang tải hoặc chưa có dữ liệu giao dịch...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2 PIE/DOUGHNUT CHARTS SIDE BY SIDE -->
+            <div class="charts-grid-2">
+                <div class="glass-panel chart-box">
+                    <h3>💰 Phân Bổ Lợi Nhuận Theo Chiến Lược</h3>
+                    <div class="canvas-container">
+                        <canvas id="chart-profit-pie"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel chart-box">
+                    <h3>📑 Phân Bổ Khối Lượng Lệnh (Trades Count)</h3>
+                    <div class="canvas-container">
+                        <canvas id="chart-trades-pie"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MAIN VIEW 2: STRATEGY DRILL-DOWN VIEW -->
+        <main id="view-drilldown" class="view-section loading-container hidden">
+            <!-- Local Spinner -->
+            <div class="container-spinner">
+                <div class="circle-spinner"></div>
+            </div>
+
+            <!-- BACK BUTTON & STRATEGY HEADER -->
+            <div class="drilldown-header glass-panel">
+                <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
+                        <button id="btn-back-portfolio" class="btn-secondary">⬅️ Quay lại Tổng quan Portfolio</button>
+                        
+                        <!-- Quick strategy switcher -->
+                        <div id="drill-strategy-select-container" class="strategy-switcher">
+                            <label for="drill-strategy-select" style="font-size: 13px; font-weight: 600; color: var(--text-muted);">🔄 Chuyển Chiến Lược:</label>
+                            <select id="drill-strategy-select" class="select-input" style="min-width: 220px; font-weight: 600;"></select>
+                        </div>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 4px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
+                        <div class="strategy-title-area">
+                            <span id="drill-color-dot" class="color-dot"></span>
+                            <div>
+                                <h2 id="drill-strategy-name">Tên Chiến Lược</h2>
+                                <span id="drill-magic-badge" class="magic-badge">Magic: 00000</span>
+                                <p id="drill-strategy-desc" class="desc-text">Mô tả chiến lược</p>
+                            </div>
+                        </div>
+                        <button id="btn-edit-strategy" class="btn-accent">✏️ Đổi tên & Màu sắc...</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE EQUITY CURVE & UNDERWATER CHART -->
+            <div class="glass-panel chart-box-large">
+                <div class="panel-header">
+                    <h3>📈 Biểu Đồ Tăng Trưởng Tài Sản (Equity Curve) & Sụt Giảm (Underwater DD)</h3>
+                </div>
+                <div class="canvas-container-large">
+                    <canvas id="chart-equity-dd"></canvas>
+                </div>
+            </div>
+
+            <!-- INSTITUTIONAL SCORECARD GRID -->
+            <div class="glass-panel scorecard-panel">
+                <h3>🏛️ Bảng Điểm Định Lượng Chuyên Sâu (Institutional Scorecard)</h3>
+                <div class="scorecard-grid" id="drill-scorecard">
+                    <!-- Dynamic scorecard cards will be rendered here -->
+                </div>
+            </div>
+
+            <!-- MONTHLY RETURNS HEATMAP -->
+            <div class="glass-panel heatmap-panel">
+                <h3>🗓️ Lưới Màu Lợi Nhuận Theo Tháng (Monthly Returns Heatmap %)</h3>
+                <div class="table-responsive">
+                    <table class="styled-table heatmap-table" id="table-heatmap">
+                        <thead>
+                            <tr>
+                                <th>Năm</th>
+                                <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+                                <th>Tổng Năm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-heatmap">
+                            <!-- Dynamic heatmap -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- DAY OF WEEK & HOUR OF DAY CHARTS -->
+            <div class="charts-grid-2">
+                <div class="glass-panel chart-box">
+                    <h3>📅 Hiệu Suất Theo Ngày Trong Tuần (Day of Week)</h3>
+                    <div class="canvas-container">
+                        <canvas id="chart-dow"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel chart-box">
+                    <h3>⏰ Hiệu Suất Theo Giờ Trong Ngày (Hour of Day)</h3>
+                    <div class="canvas-container">
+                        <canvas id="chart-hod"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRADE HISTORY TABLE -->
+            <div class="glass-panel panel-section">
+                <div class="panel-header flex-between">
+                    <h3>📜 Lịch Sử Lệnh Giao Dịch Chi Tiết</h3>
+                    <div class="table-controls">
+                        <input type="text" id="trade-search" class="search-input" placeholder="🔍 Tìm theo Symbol / Ticket / Comment...">
+                        <select id="trade-filter-dir" class="select-input">
+                            <option value="ALL">Tất cả Chiều</option>
+                            <option value="LONG">BUY (Long)</option>
+                            <option value="SHORT">SELL (Short)</option>
+                        </select>
+                        <select id="trade-filter-result" class="select-input">
+                            <option value="ALL">Tất cả Lệnh</option>
+                            <option value="PROFIT">Lệnh Thắng (+)</option>
+                            <option value="LOSS">Lệnh Thua (-)</option>
+                        </select>
+                        <select id="trade-page-size" class="select-input">
+                            <option value="15">15 lệnh/trang</option>
+                            <option value="30" selected>30 lệnh/trang</option>
+                            <option value="50">50 lệnh/trang</option>
+                            <option value="100">100 lệnh/trang</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="styled-table" id="table-trades">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="ticket">Ticket <span></span></th>
+                                <th class="sortable" data-sort="symbol">Symbol <span></span></th>
+                                <th class="sortable" data-sort="direction">Chiều <span></span></th>
+                                <th class="sortable" data-sort="volume">Volume <span></span></th>
+                                <th class="sortable" data-sort="open_price">Giá Mở <span></span></th>
+                                <th class="sortable" data-sort="close_price">Giá Đóng <span></span></th>
+                                <th class="sortable" data-sort="close_time">Thời Gian Đóng <span>▼</span></th>
+                                <th class="sortable" data-sort="hold_duration_sec">Thời Gian Giữ <span></span></th>
+                                <th class="sortable" data-sort="commission_swap">Commission/Swap <span></span></th>
+                                <th class="sortable" data-sort="net_profit">Lợi Nhuận ($) <span></span></th>
+                                <th class="sortable" data-sort="comment">Comment <span></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-trades">
+                            <!-- Dynamic trades -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination Controls -->
+                <div class="pagination-controls" id="pagination-box">
+                    <button id="btn-prev-page" class="btn-secondary">⬅️ Trang trước</button>
+                    <span id="page-info">Trang 1 / 1</span>
+                    <button id="btn-next-page" class="btn-secondary">Trang sau ➡️</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL EDIT STRATEGY NAME & COLOR -->
+    <div id="modal-edit" class="modal-overlay hidden">
+        <div class="modal-card glass-panel">
+            <h3>✏️ Chỉnh Sửa Thông Tin Chiến Lược</h3>
+            <form id="form-edit-strategy">
+                <input type="hidden" id="edit-magic">
+                <div class="form-group">
+                    <label>Magic Number:</label>
+                    <input type="text" id="edit-magic-display" disabled class="input-field disabled">
+                </div>
+                <div class="form-group">
+                    <label>Tên Chiến Lược / EA:</label>
+                    <input type="text" id="edit-name" required class="input-field" placeholder="Ví dụ: AMB-HEF Trend M15">
+                </div>
+                <div class="form-group">
+                    <label>Mô tả ngắn gọn:</label>
+                    <textarea id="edit-desc" class="input-field" rows="3" placeholder="Ghi chú về chiến lược..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Màu sắc nhận diện (Hex Color):</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="edit-color-picker" class="color-input">
+                        <input type="text" id="edit-color-text" class="input-field" placeholder="#38bdf8">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="btn-close-modal" class="btn-secondary">Hủy</button>
+                    <button type="submit" class="btn-primary">💾 Lưu Cấu Hình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOADING SPINNER OVERLAY -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner-box">
+            <div class="circle-spinner"></div>
+            <span class="loading-text">Đang phân tích & tính toán dữ liệu...</span>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="/static/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "strategies": {
+    "0": {
+      "name": "Manual / Unassigned Trading",
+      "description": "Giao dịch thủ công hoặc các lệnh không gán Magic Number.",
+      "color": "#94a3b8"
+    },
+    "10001": {
+      "name": "AMB-HEF Trend M15 (XAUUSD)",
+      "description": "Adaptive Momentum Burst with Hurst Exponent Filter trên XAUUSD M15.",
+      "color": "#38bdf8"
+    },
+    "10002": {
+      "name": "AMB-HEF Trend M15 (GBPJPY)",
+      "description": "Adaptive Momentum Burst with Hurst Exponent Filter trên GBPJPY M15.",
+      "color": "#818cf8"
+    },
+    "20001": {
+      "name": "VWAP Mean Reversion M5",
+      "description": "Chiến lược đảo chiều trung bình quanh VWAP trên khung M5.",
+      "color": "#f43f5e"
+    },
+    "30001": {
+      "name": "Session Liquidity Absorption",
+      "description": "Chiến lược hấp thụ thanh khoản theo phiên giao dịch.",
+      "color": "#10b981"
+    },
+    "111": {
+      "name": "Range Breakout Rene",
+      "description": "Chiến lược tự động nhận diện từ Magic Number 111",
+      "color": "#818cf8"
+    },
+    "168168": {
+      "name": "The Volatility Rider ",
+      "description": "Chiến lược tự động nhận diện từ Magic Number 168168",
+      "color": "#06b6d4"
+    }
+  },
+  "settings": {
+    "default_time_range": "this_week",
+    "risk_free_rate_pct": 5.0,
+    "initial_capital": 10000.0,
+    "theme": "dark_glass"
+  }
+}
